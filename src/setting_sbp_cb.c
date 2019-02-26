@@ -181,27 +181,34 @@ static void setting_read_resp_callback(uint16_t sender_id, uint8_t len, uint8_t 
   int res =
     request_state_check(&ctx->request_state, &ctx->client_iface, read_response->setting, len);
 
-  if (res != 0) {
+  if (res > 0) {
+    /* No pending read request */
     return;
   }
 
-  if (setting_update_watch_only(ctx, read_response->setting, len) != 0) {
-    log_warn("error in settings read response message");
+  if (res < 0) {
+    /* Pending request and the response don't match, most likely this response
+     * was meant to some other client doing read at the same time. */
+    return;
   }
 
-  const char *value = NULL, *type = NULL;
-  if (settings_parse(read_response->setting, len, NULL, NULL, &value, &type)
-      >= SETTINGS_TOKENS_VALUE) {
+  ctx->resp_value[0] = '\0';
+  ctx->resp_type[0] = '\0';
+
+  const char *section = NULL, *name = NULL, *value = NULL, *type = NULL;
+  settings_tokens_t tokens = settings_parse(read_response->setting, len, &section, &name, &value, &type);
+  if (tokens >= SETTINGS_TOKENS_VALUE) {
     if (value) {
       strncpy(ctx->resp_value, value, sizeof(ctx->resp_value));
     }
     if (type) {
       strncpy(ctx->resp_type, type, sizeof(ctx->resp_type));
     }
+    setting_update_watch_only(ctx, read_response->setting, len);
+  } else if (tokens == SETTINGS_TOKENS_NAME) {
+    log_debug("setting %s.%s not found", section, name);
   } else {
     log_warn("read response parsing failed");
-    ctx->resp_value[0] = '\0';
-    ctx->resp_type[0] = '\0';
   }
 }
 
