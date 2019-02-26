@@ -230,18 +230,10 @@ static void setting_write_resp_callback(uint16_t sender_id,
                       len - sizeof(write_response->status));
 
   if (write_response->status != SETTINGS_WR_OK) {
-    /* Enable this warning back after ESD-1022 is fixed
-     * log_warn(
-     *                       "setting write rejected (code: %d), not updating watched values",
-     *                       write_response->status);
-     */
     return;
   }
 
-  if (setting_update_watch_only(ctx, write_response->setting, len - sizeof(write_response->status))
-      != 0) {
-    log_warn("error in settings read response message");
-  }
+  setting_update_watch_only(ctx, write_response->setting, len - sizeof(write_response->status));
 }
 
 static void setting_read_by_index_resp_callback(uint16_t sender_id,
