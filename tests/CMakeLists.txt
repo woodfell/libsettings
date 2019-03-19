@@ -6,18 +6,23 @@ elseif (SKIP_UNIT_TESTS)
   message(STATUS "Skipping unit tests requested")
 else ()
   # Download and unpack googletest at configure time
-  configure_file(CMakeLists.txt.in googletest-download/CMakeLists.txt)
-  execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
-    RESULT_VARIABLE result
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/googletest-download )
-  if(result)
-    message(FATAL_ERROR "CMake step for googletest failed: ${result}")
-  endif()
-  execute_process(COMMAND ${CMAKE_COMMAND} --build .
-    RESULT_VARIABLE result
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/googletest-download )
-  if(result)
-    message(FATAL_ERROR "Build step for googletest failed: ${result}")
+  if ( gtest_SOURCE_DIR )
+    # Something has already imported gtest, don't do it again
+    message (STATUS "Skipped import of googletest, already avaialble")
+  else()
+    configure_file(CMakeLists.txt.in googletest-download/CMakeLists.txt)
+    execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
+      RESULT_VARIABLE result
+      WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/googletest-download )
+    if(result)
+      message(FATAL_ERROR "CMake step for googletest failed: ${result}")
+    endif()
+    execute_process(COMMAND ${CMAKE_COMMAND} --build .
+      RESULT_VARIABLE result
+      WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/googletest-download )
+    if(result)
+      message(FATAL_ERROR "Build step for googletest failed: ${result}")
+    endif()
   endif()
 
   # Prevent overriding the parent project's compiler/linker
