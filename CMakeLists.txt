@@ -6,6 +6,10 @@ project(libsettings)
 ################################################################################
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
+if(NOT CMAKE_INSTALL_FULL_BINDIR)
+  include(GNUInstallDirs)
+endif()
+
 ################################################################################
 # Build Controls
 ################################################################################
